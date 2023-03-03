@@ -1,77 +1,105 @@
 package ru.kata.spring.boot_security.demo.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.RoleService;
 import ru.kata.spring.boot_security.demo.service.UserService;
+import ru.kata.spring.boot_security.demo.util.UserCreatingOrUpdatingException;
+import ru.kata.spring.boot_security.demo.util.UserErrorResponse;
 
+import javax.validation.Valid;
+import java.security.Principal;
+import java.util.List;
 import java.util.Set;
 
-@Controller
-@RequestMapping("/admin")
+@RestController
+@RequestMapping("/admin/api")
+@CrossOrigin
 public class AdminsController {
 
     private final UserService userService;
     private final RoleService roleService;
-    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    public AdminsController(UserService userService, RoleService roleService, BCryptPasswordEncoder passwordEncoder) {
+    public AdminsController(UserService userService, RoleService roleService) {
         this.userService = userService;
         this.roleService = roleService;
-        this.passwordEncoder = passwordEncoder;
     }
 
-    @GetMapping()
-    public String getAdminPage(Model model){
-        model.addAttribute("users", userService.getAllUsers());
-        return "/admin";
+    @GetMapping(("/admin"))
+    public ResponseEntity<List<User>> getAdminPage() {
+        return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
+    }
+    @GetMapping("/admin/{id}")
+    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+        return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
+    }
+    @GetMapping("/authUser")
+    public ResponseEntity<User> showAuthUser(Principal principal) {
+        return new ResponseEntity<>(userService.getUserByUsername(principal.getName()), HttpStatus.OK);
+    }
+    @GetMapping("/roles")
+    public ResponseEntity<List<Role>> getAllRoles() {
+        List<Role> allRoles = roleService.getRoles();
+        return new ResponseEntity<>(allRoles, HttpStatus.OK);
     }
 
-    @GetMapping("/new")
-    public String getNewUserForm (@ModelAttribute("user") User user, Model model) {
-        model.addAttribute("roles", roleService.getRoles());
-        return "/new";
-    }
+    @PostMapping("/admin")
+    public ResponseEntity<User> createUser(@RequestBody @Valid User user,
+                                           BindingResult bindingResult) {
 
-    @PostMapping("/createNew")
-    public String createUser(@ModelAttribute("user") User user,
-                             @RequestParam(value = "nameRole") String nameRole) {
-
-        Role role = new Role(nameRole);
-        roleService.saveRole(role);
-        user.setRoles(Set.of(role));
+        collectErrorMessage(bindingResult);
         userService.saveUser(user);
-        return "redirect:/admin";
+        return new ResponseEntity<>(user, HttpStatus.CREATED);
     }
 
-    @GetMapping("/{id}/edit")
-    public String editUser(Model model, @PathVariable("id") Long id){
-        model.addAttribute("user", userService.getUserById(id));
-        model.addAttribute("roles", roleService.getRoles());
-        return "/edit";
-    }
 
-    @PatchMapping(value = "/{id}")
-    public String updateUser(@ModelAttribute("user") User user, @RequestParam(value = "nameRole") String nameRole) {
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+    @PatchMapping(value = "/admin/{id}")
+    public ResponseEntity<User> updateUser(@RequestBody @Valid User user, BindingResult bindingResult) {
 
-        Role role = new Role(nameRole);
-        roleService.saveRole(role);
-        user.setRoles(Set.of(role));
+        collectErrorMessage(bindingResult);
         userService.updateUser(user);
-        return "redirect:/admin";
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
-    @DeleteMapping("/{id}/delete")
-    public String removeUserById(@PathVariable("id") Long id) {
-        roleService.removeRoleById(id);
+
+    @DeleteMapping("/admin/{id}")
+    public ResponseEntity<User> deleteUser(@PathVariable Long id) {
+
         userService.removeById(id);
-        return "redirect:/admin";
+        return ResponseEntity.ok().build();
+    }
+
+    @ExceptionHandler
+    private ResponseEntity<UserErrorResponse> handleException(UserCreatingOrUpdatingException exception) {
+        UserErrorResponse response = new UserErrorResponse(
+                exception.getMessage(),
+                System.currentTimeMillis()
+        );
+
+        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+    }
+
+    private void collectErrorMessage(BindingResult bindingResult) {
+        if (bindingResult.hasErrors()) {
+            StringBuilder errorMsg = new StringBuilder();
+
+            List<FieldError> errors = bindingResult.getFieldErrors();
+            for (FieldError error : errors) {
+                errorMsg.append(error.getField())
+                        .append(" - ").append(error.getDefaultMessage())
+                        .append(";");
+            }
+            throw new UserCreatingOrUpdatingException(errorMsg.toString());
+        }
     }
 }
