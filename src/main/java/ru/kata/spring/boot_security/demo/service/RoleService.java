@@ -10,6 +10,4 @@ public interface RoleService {
     List<Role> getRoles();
 
     void saveRole(Role role);
-
-    void removeRoleById(Long id);
 }

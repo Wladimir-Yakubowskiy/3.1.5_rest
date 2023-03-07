@@ -43,7 +43,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     }
 
     @Override
-    public User getUserById(Long id) {
+    public User getUserById(Integer id) {
         Optional<User> userById = userRepository.findById(id);
         if (userById.isPresent())
             return userById.get();
@@ -65,7 +65,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Transactional
     @Override
     public void removeById(Long id) {
-        userRepository.deleteById(id);
+        userRepository.deleteById(Math.toIntExact(id));
     }
 
     @Transactional

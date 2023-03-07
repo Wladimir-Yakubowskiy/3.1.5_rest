@@ -1,11 +1,7 @@
 package ru.kata.spring.boot_security.demo.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +15,6 @@ import ru.kata.spring.boot_security.demo.util.UserErrorResponse;
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequestMapping("/admin/api")
@@ -39,7 +34,7 @@ public class AdminsController {
         return new ResponseEntity<>(userService.getAllUsers(), HttpStatus.OK);
     }
     @GetMapping("/admin/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id) {
+    public ResponseEntity<User> getUserById(@PathVariable Integer id) {
         return new ResponseEntity<>(userService.getUserById(id), HttpStatus.OK);
     }
     @GetMapping("/authUser")
@@ -54,7 +49,7 @@ public class AdminsController {
 
     @PostMapping("/admin")
     public ResponseEntity<User> createUser(@RequestBody @Valid User user,
-                                           BindingResult bindingResult) {
+                                                 BindingResult bindingResult) {
 
         collectErrorMessage(bindingResult);
         userService.saveUser(user);

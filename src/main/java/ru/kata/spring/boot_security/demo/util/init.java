@@ -1,11 +1,12 @@
 package ru.kata.spring.boot_security.demo.util;
 
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import ru.kata.spring.boot_security.demo.service.RoleService;
-import ru.kata.spring.boot_security.demo.service.UserService;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
+import ru.kata.spring.boot_security.demo.service.RoleService;
+import ru.kata.spring.boot_security.demo.service.UserService;
 
 import javax.annotation.PostConstruct;
 import java.util.Set;
@@ -29,7 +30,7 @@ public class init {
         roleService.saveRole(roleAdmin);
         roleService.saveRole(roleUser);
 
-        User admin = new User("admin", "adminovich", "admin", "admin", Set.of(roleAdmin, roleUser));
+        User admin = new User("admin", "adminovich", "admin", "admin", Set.of(roleAdmin));
         userService.saveUser(admin);
 
         User user = new User("user", "userovich", "user", "user", Set.of(roleUser));

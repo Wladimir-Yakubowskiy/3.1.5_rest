@@ -13,11 +13,10 @@ public class Role implements GrantedAuthority, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "role_id")
-    private Long id;
+    private Integer id;
 
     @Column(name = "role_name")
     private String name;
-
 
     @JsonIgnore
     @ManyToMany(mappedBy = "roles")
@@ -30,11 +29,11 @@ public class Role implements GrantedAuthority, Serializable {
         this.name = name;
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(Integer id) {
         this.id = id;
     }
 
@@ -51,13 +50,6 @@ public class Role implements GrantedAuthority, Serializable {
         return getName();
     }
 
-    public List<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(List<User> users) {
-        this.users = users;
-    }
 
     @Override
     public boolean equals(Object obj) {
@@ -77,7 +69,9 @@ public class Role implements GrantedAuthority, Serializable {
     @Override
     public String toString() {
         return "Role{" +
-                "name='" + name + '\'' +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", users=" + users +
                 '}';
     }
 }
