@@ -18,7 +18,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/admin/api")
-@CrossOrigin
 public class AdminsController {
 
     private final UserService userService;
